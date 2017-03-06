@@ -1,23 +1,24 @@
 ﻿<!doctype html>
-<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.8/jquery.min.js"></script>
+
 <html>
 <head>
     <script src="http://d3js.org/d3.v2.js"></script>
-   
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.8/jquery.min.js"></script>
     <style>
-        .chart div {
+        .chart rect {
+            fill: steelblue;
+        }
+
+        .chart text {
+          fill: white;
           font: 10px sans-serif;
-          background-color: steelblue;
-          text-align: right;
-          padding: 3px;
-          margin: 1px;
-          color: white;
+          text-anchor: end;
         }
     </style>
     
 </head>
 <body>
-  <div class="chart"></div>
+    <svg class="chart"></svg>
     <script src="app.js"></script>
 </body>
 </html>

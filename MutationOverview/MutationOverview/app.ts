@@ -1,17 +1,45 @@
 ﻿class BarChart {
     render(data) {
+        let width = 960,
+            height = 500;
         let array = [];
         for (var key in data) {
-            array.push(data[key]);
-            
+            array.push(data[key]);           
         }
 
-        d3.select(".chart")
-            .selectAll("div")
+        var y = d3.scale.linear()
+            .range([height, 0]);
+
+        var margin = { top: 20, right: 30, bottom: 30, left: 40 },
+            width1 = width - margin.left - margin.right,
+            height1 = height - margin.top - margin.bottom;
+
+        var chart = d3.select(".chart")
+            .attr("width", width)
+            .attr("height", height)
+            .append("g")
+            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+        y.domain([0, d3.max(array, function (d) { return d; })]);
+        let barWidth = width / array.length;
+
+        var bar = chart.selectAll("g")
             .data(array)
-            .enter().append("div")
-            .style("width", function (d) { return d * 10 + "px"; })
+            .enter().append("g")
+            .attr("transform", function (d, i) { return "translate(" + i * barWidth + ", 0)"; });
+
+        bar.append("rect")
+            .attr("y", function (d) { return y(d); })
+            .attr("height", function (d) { return height - y(d); })
+            .attr("width", barWidth - 1);
+
+        bar.append("text")
+            .attr("x", barWidth / 2)
+            .attr("y", function (d) { return y(d) + 3; })
+            .attr("dy", ".75em")
             .text(function (d) { return d; });
+
+        
     }
 }
 

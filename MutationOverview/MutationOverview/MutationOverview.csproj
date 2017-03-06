@@ -30,7 +30,6 @@
     <TypeScriptCompile Include="app.ts" />
     <TypeScriptCompile Include="charts.ts" />
     <TypeScriptCompile Include="d3.d.ts" />
-    <TypeScriptCompile Include="data.ts" />
     <TypeScriptCompile Include="jquery.d.ts" />
   </ItemGroup>
   <ItemGroup>

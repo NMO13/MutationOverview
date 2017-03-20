@@ -1,0 +1,33 @@
+{
+  "generator-phovea": {
+    "type": "app",
+    "app": "MutationOverview",
+    "clientOnly": true,
+    "entries": {
+      "app": "./src/index.ts"
+    },
+    "libraries": [
+      "d3",
+      "jquery"
+    ],
+    "modules": [
+      "phovea_core",
+      "phovea_d3",
+      "phovea_ui"
+    ],
+    "libraryAliases": {
+      "d3": "d3/d3"
+    },
+    "libraryExternals": [
+      "d3",
+      "jquery",
+      "font-awesome"
+    ],
+    "ignores": [],
+    "extensions": [],
+    "name": "mutation_overview",
+    "author": "Martin Ennemoser",
+    "today": "Mon, 20 Mar 2017 00:58:21 GMT",
+    "githubAccount": "NMO13"
+  }
+}

@@ -87,7 +87,7 @@ class StackChart implements Renderable {
 		var z = d3_scale.scaleOrdinal()
 			.range(colorArr);
   
- x.domain(data.map(function(d : History) { return d.chrom; }));
+		x.domain(data.map(function(d : History) { return d.chrom; }));
 		y.domain([0, d3.max(data, function(d : History) { return d.total; })]).nice();
 		z.domain(keys);
 
@@ -133,7 +133,7 @@ class StackChart implements Renderable {
       .attr("fill", "#000")
       .attr("font-weight", "bold")
       .attr("text-anchor", "start")
-      .text("Mutation Count");
+      .text("Mutation Distribution");
 	  
 	  var legend = g.append("g")
       .attr("font-family", "sans-serif")

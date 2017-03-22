@@ -64,15 +64,15 @@
     "url-loader": "0.5.7",
     "webpack": "2.2.1",
     "webpack-dev-server": "2.3.0",
-	"@types/d3-selection": "^1.0.4",
-	"d3-selection": "^1.0.3",
-	"@types/d3-shape": "^1.0.4",
-	"d3-shape": "^1.0.3"
+    "@types/d3-selection": "^1.0.4",
+    "d3-selection": "^1.0.3",
+    "@types/d3-shape": "^1.0.4",
+    "d3-shape": "^1.0.3"
   },
   "dependencies": {
-    "phovea_core": "github:phovea/phovea_core#v0.0.5",
-    "phovea_d3": "github:phovea/phovea_d3#v0.0.5",
-    "phovea_ui": "github:phovea/phovea_ui#v0.0.5",
+    "phovea_core": "github:phovea/phovea_core#develop",
+    "phovea_d3": "github:phovea/phovea_d3#develop",
+    "phovea_ui": "github:phovea/phovea_ui#develop",
     "@types/d3": "3.5.36",
     "d3": "3.5.17",
     "@types/jquery": "2.0.33",
@@ -93,6 +93,6 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/NMO13/MutationOverview"
+    "url": "https://github.com/NMO13/mutation_overview.git"
   }
 }

@@ -35,7 +35,11 @@ export class App {
    * @returns {Promise<App>}
    */
   private build() {
+	this.setBusy(false);
+	this.$node.select('h3').remove();
+	
 	start1();
+	
     return Promise.resolve(null);
   }
 
@@ -65,9 +69,10 @@ interface Renderable {
 class StackChart implements Renderable {
 	render(data, params?: Object) : void {
 		let keys = params[1];
+		let colorArr = params[2];
 		let svg = d3_selection.select("#chromosome-ov"),
 		margin = {top: 20, right: 20, bottom: 30, left: 40},
-		width = +svg.attr("width") - margin.left - margin.right,
+		width = +svg.attr("width") - margin.left - margin.right - 30,
 		height = +svg.attr("height") - margin.top - margin.bottom,
 		g = svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 		
@@ -78,16 +83,14 @@ class StackChart implements Renderable {
 
 		var y = d3_scale.scaleLinear()
 			.rangeRound([height, 0]);
-
-		let colorArr = [];
-		for(var i = 0; i < keys.length; i++)
-			colorArr.push(randomColor());
+		
 		var z = d3_scale.scaleOrdinal()
 			.range(colorArr);
-			
-		x.domain(data.map(function(d : History) { return d.chrom; }));
+  
+ x.domain(data.map(function(d : History) { return d.chrom; }));
 		y.domain([0, d3.max(data, function(d : History) { return d.total; })]).nice();
 		z.domain(keys);
+
 		
 		var layers = d3_shape.stack().keys(keys)(data);
 			
@@ -103,11 +106,13 @@ class StackChart implements Renderable {
 	
     rects.data(function(d) 
 	{ 
-	return [d[0], d[1]]; })
+		return <{}[]> d; 
+	})
     .enter().append("rect")
       .attr("x", function(d) 
 	  { 
-		return x(d.data.chrom.toString()) 
+		let res = x(d["data"]["chrom"]);
+		return res.toString();
 		})
       .attr("y", function(d) { return y(d[1]); })
       .attr("height", function(d) { return y(d[0]) - y(d[1]); })
@@ -117,11 +122,50 @@ class StackChart implements Renderable {
       .attr("class", "axis")
       .attr("transform", "translate(0," + height + ")")
       .call(d3_axis.axisBottom(x));
+	  
+	  g.append("g")
+      .attr("class", "axis")
+      .call(d3_axis.axisLeft(y).ticks(null, "s"))
+    .append("text")
+      .attr("x", 2)
+      .attr("y", y(y.ticks().pop()) + 0.5)
+      .attr("dy", "0.32em")
+      .attr("fill", "#000")
+      .attr("font-weight", "bold")
+      .attr("text-anchor", "start")
+      .text("Mutation Count");
+	  
+	  var legend = g.append("g")
+      .attr("font-family", "sans-serif")
+      .attr("font-size", 10)
+      .attr("text-anchor", "end")
+    .selectAll("g")
+    .data(keys.slice().reverse())
+    .enter().append("g")
+      .attr("transform", function(d, i) { return "translate(50," + i * 20 + ")"; });
+
+  legend.append("rect")
+      .attr("x", width - 19)
+      .attr("width", 19)
+      .attr("height", 13)
+      .attr("fill", function(d) 
+	  { 
+	  return z(d.toString()).toString();
+	  });
+
+  legend.append("text")
+      .attr("x", width - 24)
+      .attr("y", 9.5)
+      .attr("dy", "0.32em")
+      .text(function(d) { return d.toString(); });
 	}
 }
 
 class BarChart implements Renderable {
-    render(data) : void {
+    render(data, params?: Object) : void {
+		let keys = params[0];
+		let colorArr = params[1];
+		
 		let svg = d3_selection.select("#mutation-ov"),
 		margin = {top: 20, right: 20, bottom: 30, left: 40},
 		width = +svg.attr("width") - margin.left - margin.right,
@@ -152,6 +196,9 @@ class BarChart implements Renderable {
 		  .attr("text-anchor", "end")
 		  .text("Mutation Count");
 
+		  var z = d3_scale.scaleOrdinal()
+			.range(colorArr);
+			z.domain(keys);
 		let bars = g.selectAll(".bar")
 		  .data(data)
 		  .enter().append("rect")
@@ -159,7 +206,11 @@ class BarChart implements Renderable {
 	      .attr("x", function(d) { return x(d[0]); })
 	      .attr("y", function(d) { return y(d[1]); })
 	      .attr("width", x.bandwidth())
-	      .attr("height", function(d) { return height - y(d[1]); });
+	      .attr("height", function(d) { return height - y(d[1]); })
+		  .attr("fill", function(d) 
+		  { 
+		  return z(d.toString()).toString();
+		  });
 	  
 		bars.append('title')
           .text((d) => d[0] + ' - ' + d[1]);
@@ -251,18 +302,23 @@ function start1() {
 				return mutation.length > 0 ? [mutation[0].mutation, mutation.length] : [];
 			});
 			
+			let keys = arr.map(function(mutation) {
+				return mutation[0];
+			});
+			
+			let colorArr = [];
+			for(var i = 0; i < keys.length; i++)
+			colorArr.push(randomColor());
 			
             let bc = new BarChart();
-            bc.render(arr);
+            bc.render(arr, [keys, colorArr]);
 			
 			let chromosomes = mutationArray.groupByProperties(function(item)
 			{
 			  return [item.chromosome];
 			});
 			
-			let keys = arr.map(function(mutation) {
-				return mutation[0];
-			});
+			
 			chromosomes = chromosomes.map(function(ch) {
 				
 				let hist = new History(keys);
@@ -277,7 +333,7 @@ function start1() {
 			});
 			
 			let sc = new StackChart();
-			sc.render(chromosomes, [mutations.length, keys]);
+			sc.render(chromosomes, [mutations.length, keys, colorArr]);
         });   
 }
 

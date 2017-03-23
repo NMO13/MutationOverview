@@ -105,18 +105,25 @@ class StackChart implements Renderable {
     .selectAll("rect");
 	
     rects.data(function(d) 
-	{ 
+	{
+		for (let entry of d) {
+			entry["mutation"] = d.key;
+		}
 		return <{}[]> d; 
 	})
     .enter().append("rect")
       .attr("x", function(d) 
 	  { 
-		let res = x(d["data"]["chrom"]);
-		return res.toString();
+		return x(d["data"]["chrom"]).toString();
 		})
       .attr("y", function(d) { return y(d[1]); })
       .attr("height", function(d) { return y(d[0]) - y(d[1]); })
-      .attr("width", x.bandwidth());
+      .attr("width", x.bandwidth())
+	  .attr("class", "bar")  
+	  .on("click", this.handleDoubleClick)
+	  .on("mouseover", this.handleMouseOver)
+	  .append('title')
+          .text((d) => d["mutation"] + ": " + (d[1]-d[0]).toString());
 	  
 	   g.append("g")
       .attr("class", "axis")
@@ -158,6 +165,29 @@ class StackChart implements Renderable {
       .attr("y", 9.5)
       .attr("dy", "0.32em")
       .text(function(d) { return d.toString(); });
+	}
+	
+	// Create Event Handlers for mouse
+      handleMouseOver(d, i) {  // Add interactivity
+			let x = 5;
+            // // Use D3 to select element, change color and size
+            // d3.select(this).attr({
+              // fill: "orange",
+              // r: radius * 2
+            // });
+
+            // // Specify where to put label of text
+            // svg.append("text").attr({
+               // id: "t" + d.x + "-" + d.y + "-" + i,  // Create an id for text so we can select it later for removing on mouseout
+                // x: function() { return xScale(d.x) - 30; },
+                // y: function() { return yScale(d.y) - 15; }
+            // })
+            // .text(function() {
+              // return [d.x, d.y];  // Value of the text
+            // });
+          }
+	handleDoubleClick(d, i) {
+		let x = 5;
 	}
 }
 

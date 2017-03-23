@@ -187,7 +187,7 @@ class StackChart implements Renderable {
 			for(let i = 0; i < sc._keys.length; i++) {
 				let key = sc._keys[i];
 				if(d.data[key] > 0) {
-					let el = sc._barChart._data[i];
+					let el = sc._barChart._data.find(x => x[0] === key);
 					newData.push(el);
 					newKeys.push(key);
 					newColorArr.push(sc._colorArray[i]);
@@ -364,63 +364,71 @@ class History {
 	chrom: string;
 }
 
+let _data = {};
+document.getElementById("demo").onclick = function() {redraw(_data)};
+
+function redraw(data) {
+	let s: MutationConverter = {
+		convert: function (data) {
+			let convertedArr = data.hits.map(function (datum) {
+				return new MutationDatum(datum.chromosome, datum.end, datum.id, datum.mutation, datum.start, datum.type);
+			});
+			return new MutationArray(convertedArr);
+		}
+	};
+	let mutationArray = s.convert(data);
+
+	let mutations = mutationArray.groupByProperties(function(item)
+	{
+		return [item.mutation];
+	});
+	
+	let arr = [];
+	arr = mutations.map(function(mutation) {
+		return mutation.length > 0 ? [mutation[0].mutation, mutation.length] : [];
+	});
+	
+	let keys = arr.map(function(mutation) {
+		return mutation[0];
+	});
+	
+	let colorArr = [];
+	for(var i = 0; i < keys.length; i++)
+	colorArr.push(randomColor());
+	
+	let sc = new StackChart();
+	let bc = new BarChart();
+	bc.update(arr, [keys, colorArr, sc]);
+	
+	let chromosomes = mutationArray.groupByProperties(function(item)
+	{
+	  return [item.chromosome];
+	});
+	
+	
+	chromosomes = chromosomes.map(function(ch) {
+		
+		let hist = new History(keys);
+		
+		for(let mutationDatum of ch) {
+			let m = mutationDatum.mutation;
+			if (m in hist) hist[m]++; else hist[m] = 1;
+			hist.chrom = mutationDatum.chromosome;
+			hist.total++;
+		}
+		return hist;
+	});
+	
+	
+	sc.update(chromosomes, [keys, colorArr, bc]);
+}
+
 function start1() {
     let obj = new JsonDataService();
     let data = obj.getData("https://dcc.icgc.org/api/v1/projects/GBM-US/mutations?field=id,mutation,type,chromosome,start,end&size=100&order=desc").then(
         function (returndata) {
-            let s: MutationConverter = {
-                convert: function (data) {
-                    let convertedArr = data.hits.map(function (datum) {
-                        return new MutationDatum(datum.chromosome, datum.end, datum.id, datum.mutation, datum.start, datum.type);
-                    });
-                    return new MutationArray(convertedArr);
-                }
-            };
-            let mutationArray = s.convert(returndata);
-
-			let mutations = mutationArray.groupByProperties(function(item)
-			{
-				return [item.mutation];
-			});
-			
-			let arr = [];
-			arr = mutations.map(function(mutation) {
-				return mutation.length > 0 ? [mutation[0].mutation, mutation.length] : [];
-			});
-			
-			let keys = arr.map(function(mutation) {
-				return mutation[0];
-			});
-			
-			let colorArr = [];
-			for(var i = 0; i < keys.length; i++)
-			colorArr.push(randomColor());
-			
-			let sc = new StackChart();
-            let bc = new BarChart();
-            bc.render(arr, [keys, colorArr, sc]);
-			
-			let chromosomes = mutationArray.groupByProperties(function(item)
-			{
-			  return [item.chromosome];
-			});
-			
-			
-			chromosomes = chromosomes.map(function(ch) {
-				
-				let hist = new History(keys);
-				
-				for(let mutationDatum of ch) {
-					let m = mutationDatum.mutation;
-					if (m in hist) hist[m]++; else hist[m] = 1;
-					hist.chrom = mutationDatum.chromosome;
-					hist.total++;
-				}
-				return hist;
-			});
-			
-			
-			sc.render(chromosomes, [keys, colorArr, bc]);
+			_data = returndata;
+            redraw(returndata);
         });   
 }
 

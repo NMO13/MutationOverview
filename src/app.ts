@@ -179,7 +179,7 @@ class StackChart implements Renderable {
 		let sc = d.data.obj;
 		if(!sc._clicked) {
 			sc._clicked = true;
-			sc.update([d.data], [])
+			sc.update([d.data], []);
 			
 			let newData = [];
 			let newKeys = [];
@@ -217,11 +217,12 @@ class BarChart implements Renderable {
 	}
 	
     render(data, params?: Object) : void {
-		this._keys = params[0];
-		this._colorArray = params[1];
-		this._stackChart = params[2];
+		this._keys = params[0] || this._keys;
+		this._colorArray = params[1] || this._colorArray;
+		this._stackChart = params[2] || this._stackChart;
 		this._data = data;
 		let _this = this;
+		data.forEach(x => x["obj"] = _this);
 		
 		let svg = d3_selection.select("#mutation-ov"),
 		margin = {top: 20, right: 20, bottom: 30, left: 40},
@@ -253,7 +254,7 @@ class BarChart implements Renderable {
 		  .attr("text-anchor", "end")
 		  .text("Mutation Count");
 
-		var z = d3_scale.scaleOrdinal()
+		let z = d3_scale.scaleOrdinal()
 			.range(this._colorArray);
 		z.domain(this._keys);
 		let bars = g.selectAll(".bar")
@@ -266,7 +267,7 @@ class BarChart implements Renderable {
 	      .attr("height", function(d) { return height - y(d[1]); })
 		  .attr("fill", function(d) 
 		  { 
-		  return z(d.toString()).toString();
+			return z(d.toString()).toString();
 		  })
 		  .on("click", this.handleClick);
 	  
@@ -281,7 +282,24 @@ class BarChart implements Renderable {
 	}
 	
 	handleClick(d, i) {
-		let x = 0;
+		let bc = d.obj;
+		if(!bc._clicked) {
+			bc._clicked = true;
+			let key = bc._keys[i];
+			let color = bc._colorArray[i];
+			bc.update([d], [[key], [color]]);
+			
+			let sc = bc._stackChart;
+			let dataNew = sc._data.map(function(h) {
+				sc._keys.forEach(function(k) {
+					let l = d[0];
+					if(l !== k)
+						h[k] = 0;
+				});
+				return h;
+			});
+			sc.update(dataNew, []);
+		}
 	}
 }
 

@@ -64,16 +64,24 @@ export function create(parent:Element) {
 
 interface Renderable {
 	render(data, params?: Object) : void;
+	update(data, params?: Object) : void;
 }
 
 class StackChart implements Renderable {
 	_data : Array<History>;
 	_keys : Array<string>;
 	_colorArray : Array<Object>;
+	_barChart : Renderable;
+	_clicked : boolean;
+	
+	constructor() {
+		this._clicked = false;
+	}
 	
 	render(data, params?: Object) : void {
 		this._keys = params[0] || this._keys;
 		this._colorArray = params[1] || this._colorArray;
+		this._barChart = params[2] || this._barChart;
 		this._data = data || this._data;
 		let _this = this;
 		data.map(function(h : History) {h["obj"] = _this;});
@@ -121,7 +129,7 @@ class StackChart implements Renderable {
 		.attr("height", function(d) { return y(d[0]) - y(d[1]); })
 		.attr("width", x.bandwidth())
 		.attr("class", "bar")  
-		.on("click", this.handleDoubleClick)
+		.on("click", this.handleClick)
 		.append('title')
 		  .text((d) => d["mutation"] + ": " + (d[1]-d[0]).toString());
 
@@ -167,19 +175,53 @@ class StackChart implements Renderable {
 		  .text(function(d) { return d.toString(); });
 	}
 	
-	handleDoubleClick(d, i) {
+	handleClick(d, i) {
+		let sc = d.data.obj;
+		if(!sc._clicked) {
+			sc._clicked = true;
+			sc.update([d.data], [])
+			
+			let newData = [];
+			let newKeys = [];
+			let newColorArr = [];
+			for(let i = 0; i < sc._keys.length; i++) {
+				let key = sc._keys[i];
+				if(d.data[key] > 0) {
+					let el = sc._barChart._data[i];
+					newData.push(el);
+					newKeys.push(key);
+					newColorArr.push(sc._colorArray[i]);
+				}
+			}
+			sc._barChart.update(newData, [newKeys, newColorArr])
+		}
+	}
+	
+	update(data, params?: Object) : void {
 		let g = d3_selection.select("#chromosome-ov > g");
 		g.remove();
-		var sc = d.data.obj;
-		sc.render([d.data], []);
+		this.render(data, params);
 	}
 
 }
 
 class BarChart implements Renderable {
+	_data : Array<History>;
+	_keys : Array<string>;
+	_colorArray : Array<Object>;
+	_clicked : boolean;
+	_stackChart : Renderable;
+	
+	constructor() {
+		this._clicked = false;
+	}
+	
     render(data, params?: Object) : void {
-		let keys = params[0];
-		let colorArr = params[1];
+		this._keys = params[0];
+		this._colorArray = params[1];
+		this._stackChart = params[2];
+		this._data = data;
+		let _this = this;
 		
 		let svg = d3_selection.select("#mutation-ov"),
 		margin = {top: 20, right: 20, bottom: 30, left: 40},
@@ -211,9 +253,9 @@ class BarChart implements Renderable {
 		  .attr("text-anchor", "end")
 		  .text("Mutation Count");
 
-		  var z = d3_scale.scaleOrdinal()
-			.range(colorArr);
-			z.domain(keys);
+		var z = d3_scale.scaleOrdinal()
+			.range(this._colorArray);
+		z.domain(this._keys);
 		let bars = g.selectAll(".bar")
 		  .data(data)
 		  .enter().append("rect")
@@ -225,10 +267,21 @@ class BarChart implements Renderable {
 		  .attr("fill", function(d) 
 		  { 
 		  return z(d.toString()).toString();
-		  });
+		  })
+		  .on("click", this.handleClick);
 	  
 		bars.append('title')
           .text((d) => d[0] + ' - ' + d[1]);
+	}
+	
+	update(data, params?: Object) : void {
+		let g = d3_selection.select("#mutation-ov > g");
+		g.remove();
+		this.render(data, params);
+	}
+	
+	handleClick(d, i) {
+		let x = 0;
 	}
 }
 
@@ -325,8 +378,9 @@ function start1() {
 			for(var i = 0; i < keys.length; i++)
 			colorArr.push(randomColor());
 			
+			let sc = new StackChart();
             let bc = new BarChart();
-            bc.render(arr, [keys, colorArr]);
+            bc.render(arr, [keys, colorArr, sc]);
 			
 			let chromosomes = mutationArray.groupByProperties(function(item)
 			{
@@ -347,8 +401,8 @@ function start1() {
 				return hist;
 			});
 			
-			let sc = new StackChart();
-			sc.render(chromosomes, [keys, colorArr]);
+			
+			sc.render(chromosomes, [keys, colorArr, bc]);
         });   
 }
 

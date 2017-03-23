@@ -67,9 +67,16 @@ interface Renderable {
 }
 
 class StackChart implements Renderable {
+	_data : Array<History>;
+	_keys : Array<string>;
+	_colorArray : Array<Object>;
+	
 	render(data, params?: Object) : void {
-		let keys = params[1];
-		let colorArr = params[2];
+		this._keys = params[0] || this._keys;
+		this._colorArray = params[1] || this._colorArray;
+		this._data = data || this._data;
+		let _this = this;
+		data.map(function(h : History) {h["obj"] = _this;});
 		let svg = d3_selection.select("#chromosome-ov"),
 		margin = {top: 20, right: 20, bottom: 30, left: 40},
 		width = +svg.attr("width") - margin.left - margin.right - 30,
@@ -85,110 +92,88 @@ class StackChart implements Renderable {
 			.rangeRound([height, 0]);
 		
 		var z = d3_scale.scaleOrdinal()
-			.range(colorArr);
+			.range(this._colorArray);
   
 		x.domain(data.map(function(d : History) { return d.chrom; }));
 		y.domain([0, d3.max(data, function(d : History) { return d.total; })]).nice();
-		z.domain(keys);
+		z.domain(this._keys);
 
 		
-		var layers = d3_shape.stack().keys(keys)(data);
+		var layers = d3_shape.stack().keys(this._keys)(data);
 			
 		let rects = g.append("g")
-    .selectAll("g")
-    .data(layers)
-    .enter().append("g")
-      .attr("fill", function(d) 
-	  {
-		  return z(d.key).toString(); 
-		  })
-    .selectAll("rect");
+		.selectAll("g")
+		.data(layers)
+		.enter().append("g")
+		.attr("fill", function(d) { return z(d.key).toString(); })
+		.selectAll("rect");
 	
-    rects.data(function(d) 
-	{
-		for (let entry of d) {
-			entry["mutation"] = d.key;
-		}
-		return <{}[]> d; 
-	})
-    .enter().append("rect")
-      .attr("x", function(d) 
-	  { 
-		return x(d["data"]["chrom"]).toString();
+		rects.data(function(d) 
+		{
+			for (let entry of d) {
+				entry["mutation"] = d.key;
+			}
+			return <{}[]> d; 
 		})
-      .attr("y", function(d) { return y(d[1]); })
-      .attr("height", function(d) { return y(d[0]) - y(d[1]); })
-      .attr("width", x.bandwidth())
-	  .attr("class", "bar")  
-	  .on("click", this.handleDoubleClick)
-	  .on("mouseover", this.handleMouseOver)
-	  .append('title')
-          .text((d) => d["mutation"] + ": " + (d[1]-d[0]).toString());
-	  
-	   g.append("g")
-      .attr("class", "axis")
-      .attr("transform", "translate(0," + height + ")")
-      .call(d3_axis.axisBottom(x));
-	  
-	  g.append("g")
-      .attr("class", "axis")
-      .call(d3_axis.axisLeft(y).ticks(null, "s"))
-    .append("text")
-      .attr("x", 2)
-      .attr("y", y(y.ticks().pop()) + 0.5)
-      .attr("dy", "0.32em")
-      .attr("fill", "#000")
-      .attr("font-weight", "bold")
-      .attr("text-anchor", "start")
-      .text("Mutation Distribution");
-	  
-	  var legend = g.append("g")
-      .attr("font-family", "sans-serif")
-      .attr("font-size", 10)
-      .attr("text-anchor", "end")
-    .selectAll("g")
-    .data(keys.slice().reverse())
-    .enter().append("g")
-      .attr("transform", function(d, i) { return "translate(50," + i * 20 + ")"; });
+		.enter().append("rect")
+		.attr("x", function(d) { return x(d["data"]["chrom"]).toString(); })
+		.attr("y", function(d) { return y(d[1]); })
+		.attr("height", function(d) { return y(d[0]) - y(d[1]); })
+		.attr("width", x.bandwidth())
+		.attr("class", "bar")  
+		.on("click", this.handleDoubleClick)
+		.append('title')
+		  .text((d) => d["mutation"] + ": " + (d[1]-d[0]).toString());
 
-  legend.append("rect")
-      .attr("x", width - 19)
-      .attr("width", 19)
-      .attr("height", 13)
-      .attr("fill", function(d) 
-	  { 
-	  return z(d.toString()).toString();
-	  });
+		g.append("g")
+		.attr("class", "axis")
+		.attr("transform", "translate(0," + height + ")")
+		.call(d3_axis.axisBottom(x));
 
-  legend.append("text")
-      .attr("x", width - 24)
-      .attr("y", 9.5)
-      .attr("dy", "0.32em")
-      .text(function(d) { return d.toString(); });
+		g.append("g")
+		.attr("class", "axis")
+		.call(d3_axis.axisLeft(y).ticks(null, "s"))
+		.append("text")
+		.attr("x", 2)
+		.attr("y", y(y.ticks().pop()) + 0.5)
+		.attr("dy", "0.32em")
+		.attr("fill", "#000")
+		.attr("font-weight", "bold")
+		.attr("text-anchor", "start")
+		.text("Mutation Distribution");
+
+		var legend = g.append("g")
+		.attr("font-family", "sans-serif")
+		.attr("font-size", 10)
+		.attr("text-anchor", "end")
+		.selectAll("g")
+		.data(this._keys.slice().reverse())
+		.enter().append("g")
+		.attr("transform", function(d, i) { return "translate(50," + i * 20 + ")"; });
+
+		legend.append("rect")
+		  .attr("x", width - 19)
+		  .attr("width", 19)
+		  .attr("height", 13)
+		  .attr("fill", function(d) 
+		  { 
+		  return z(d.toString()).toString();
+		  });
+
+		legend.append("text")
+		  .attr("x", width - 24)
+		  .attr("y", 9.5)
+		  .attr("dy", "0.32em")
+		  .text(function(d) { return d.toString(); });
 	}
 	
-	// Create Event Handlers for mouse
-      handleMouseOver(d, i) {  // Add interactivity
-			let x = 5;
-            // // Use D3 to select element, change color and size
-            // d3.select(this).attr({
-              // fill: "orange",
-              // r: radius * 2
-            // });
-
-            // // Specify where to put label of text
-            // svg.append("text").attr({
-               // id: "t" + d.x + "-" + d.y + "-" + i,  // Create an id for text so we can select it later for removing on mouseout
-                // x: function() { return xScale(d.x) - 30; },
-                // y: function() { return yScale(d.y) - 15; }
-            // })
-            // .text(function() {
-              // return [d.x, d.y];  // Value of the text
-            // });
-          }
 	handleDoubleClick(d, i) {
-		let x = 5;
+		let g = d3_selection.select("#chromosome-ov > g");
+		g.remove();
+		var sc = d.data.obj;
+		sc.render([d.data], []);
 	}
+
 }
 
 class BarChart implements Renderable {
@@ -363,7 +348,7 @@ function start1() {
 			});
 			
 			let sc = new StackChart();
-			sc.render(chromosomes, [mutations.length, keys, colorArr]);
+			sc.render(chromosomes, [keys, colorArr]);
         });   
 }
 

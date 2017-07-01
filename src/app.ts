@@ -70,7 +70,6 @@ interface Renderable {
 class StackChart implements Renderable {
 	_data : Array<History>;
 	_keys : Array<string>;
-	_colorArray : Array<Object>;
 	_barChart : Renderable;
 	_clicked : boolean;
 	
@@ -80,8 +79,7 @@ class StackChart implements Renderable {
 	
 	render(data, params?: Object) : void {
 		this._keys = params[0] || this._keys;
-		this._colorArray = params[1] || this._colorArray;
-		this._barChart = params[2] || this._barChart;
+		this._barChart = params[1] || this._barChart;
 		this._data = data || this._data;
 		let _this = this;
 		data.map(function(h : History) {h["obj"] = _this;});
@@ -99,12 +97,11 @@ class StackChart implements Renderable {
 		var y = d3_scale.scaleLinear()
 			.rangeRound([height, 0]);
 		
-		var z = d3_scale.scaleOrdinal()
-			.range(this._colorArray);
-  
 		x.domain(data.map(function(d : History) { return d.chrom; }));
 		y.domain([0, d3.max(data, function(d : History) { return d.total; })]).nice();
-		z.domain(this._keys);
+		
+		var c20 = d3.scale.category20();
+		c20.domain(this._keys);
 
 		
 		var layers = d3_shape.stack().keys(this._keys)(data);
@@ -113,9 +110,11 @@ class StackChart implements Renderable {
 		.selectAll("g")
 		.data(layers)
 		.enter().append("g")
-		.attr("fill", function(d) { return z(d.key).toString(); })
+		.attr("fill", function(d) { 
+			return c20(d.key).toString(); 
+		})
 		.selectAll("rect");
-	
+		
 		rects.data(function(d) 
 		{
 			for (let entry of d) {
@@ -134,7 +133,7 @@ class StackChart implements Renderable {
 		  .text((d) => d["mutation"] + ": " + (d[1]-d[0]).toString());
 
 		g.append("g")
-		.attr("class", "axis")
+		.attr("class", "axis axis--xsc")
 		.attr("transform", "translate(0," + height + ")")
 		.call(d3_axis.axisBottom(x));
 
@@ -163,10 +162,7 @@ class StackChart implements Renderable {
 		  .attr("x", width - 19)
 		  .attr("width", 19)
 		  .attr("height", 13)
-		  .attr("fill", function(d) 
-		  { 
-		  return z(d.toString()).toString();
-		  });
+		  .attr("fill", c20);
 
 		legend.append("text")
 		  .attr("x", width - 24)
@@ -182,18 +178,14 @@ class StackChart implements Renderable {
 			sc.update([d.data], []);
 			
 			let newData = [];
-			let newKeys = [];
-			let newColorArr = [];
 			for(let i = 0; i < sc._keys.length; i++) {
 				let key = sc._keys[i];
 				if(d.data[key] > 0) {
 					let el = sc._barChart._data.find(x => x[0] === key);
 					newData.push(el);
-					newKeys.push(key);
-					newColorArr.push(sc._colorArray[i]);
 				}
 			}
-			sc._barChart.update(newData, [newKeys, newColorArr])
+			sc._barChart.update(newData, [])
 		}
 	}
 	
@@ -218,8 +210,7 @@ class BarChart implements Renderable {
 	
     render(data, params?: Object) : void {
 		this._keys = params[0] || this._keys;
-		this._colorArray = params[1] || this._colorArray;
-		this._stackChart = params[2] || this._stackChart;
+		this._stackChart = params[1] || this._stackChart;
 		this._data = data;
 		let _this = this;
 		data.forEach(x => x["obj"] = _this);
@@ -239,7 +230,7 @@ class BarChart implements Renderable {
 		y.domain([0, d3.max(data, function(d) { return d[1]; })]);
 
 		g.append("g")
-		  .attr("class", "axis axis--x")
+		  .attr("class", "axis axis--xbc")
 		  .attr("transform", "translate(0," + height + ")")
 		  .call(d3_axis.axisBottom(x));
 
@@ -254,9 +245,10 @@ class BarChart implements Renderable {
 		  .attr("text-anchor", "end")
 		  .text("Mutation Count");
 
-		let z = d3_scale.scaleOrdinal()
-			.range(this._colorArray);
-		z.domain(this._keys);
+		var c20 = d3.scale.category20();
+		c20.domain(this._keys);
+		
+		let keys = this._keys;
 		let bars = g.selectAll(".bar")
 		  .data(data)
 		  .enter().append("rect")
@@ -265,10 +257,9 @@ class BarChart implements Renderable {
 	      .attr("y", function(d) { return y(d[1]); })
 	      .attr("width", x.bandwidth())
 	      .attr("height", function(d) { return height - y(d[1]); })
-		  .attr("fill", function(d) 
-		  { 
-			return z(d.toString()).toString();
-		  })
+		  .attr("fill", function(d) { 
+			return c20(keys.find(x => d[0] === x));
+			})
 		  .on("click", this.handleClick);
 	  
 		bars.append('title')
@@ -286,8 +277,7 @@ class BarChart implements Renderable {
 		if(!bc._clicked) {
 			bc._clicked = true;
 			let key = bc._keys[i];
-			let color = bc._colorArray[i];
-			bc.update([d], [[key], [color]]);
+			bc.update([d], []);
 			
 			let sc = bc._stackChart;
 			let dataNew = sc._data.map(function(h) {
@@ -392,13 +382,10 @@ function redraw(data) {
 		return mutation[0];
 	});
 	
-	let colorArr = [];
-	for(var i = 0; i < keys.length; i++)
-	colorArr.push(randomColor());
 	
 	let sc = new StackChart();
 	let bc = new BarChart();
-	bc.update(arr, [keys, colorArr, sc]);
+	bc.update(arr, [keys, sc]);
 	
 	let chromosomes = mutationArray.groupByProperties(function(item)
 	{
@@ -420,7 +407,18 @@ function redraw(data) {
 	});
 	
 	
-	sc.update(chromosomes, [keys, colorArr, bc]);
+	sc.update(chromosomes, [keys, bc]);
+	
+	d3.selectAll('.axis.axis--xbc > g').on('click', clickAxisBarchart);
+	d3.selectAll('.axis.axis--xsc > g').on('click', clickAxisStackchart);
+}
+
+function clickAxisBarchart(d, i) {
+	alert('called');
+}
+
+function clickAxisStackchart(d, i) {
+	alert('called');
 }
 
 function start1() {
@@ -431,7 +429,7 @@ function start1() {
             redraw(returndata);
         });   
 }
-
+ 
 // Adapted from http://martin.ankerl.com/2009/12/09/how-to-create-random-colors-programmatically/
 
 function hue2rgb(p, q, t){

@@ -9,6 +9,7 @@ import * as d3_selection from 'd3-selection';
 import * as d3_shape from 'd3-shape';
 import * as $ from 'jquery';
 import {HELLO_WORLD} from './language';
+import * as d3_transition from 'd3-transition';
 
 /**
  * The main class for the App app
@@ -127,7 +128,7 @@ class StackChart implements Renderable {
 		.attr("y", function(d) { return y(d[1]); })
 		.attr("height", function(d) { return y(d[0]) - y(d[1]); })
 		.attr("width", x.bandwidth())
-		.attr("class", "bar")  
+		.attr("class", "barsc")  
 		.on("click", this.handleClick)
 		.append('title')
 		  .text((d) => d["mutation"] + ": " + (d[1]-d[0]).toString());
@@ -229,72 +230,105 @@ class BarChart implements Renderable {
 	_colorArray : Array<Object>;
 	_clicked : boolean;
 	_stackChart : Renderable;
+	private _node : any;
+	private width : number;
+	private height : number;
+	private x : any;
+	private y : any;
 	
 	constructor() {
 		this._clicked = false;
-	}
-	
-    render(data, params?: Object) : void {
-		this._keys = params[0] || this._keys;
-		this._stackChart = params[1] || this._stackChart;
-		this._data = data;
-		let _this = this;
-		data.forEach(x => x["obj"] = _this);
-		
 		let svg = d3_selection.select("#mutation-ov"),
-		margin = {top: 20, right: 20, bottom: 30, left: 40},
-		width = +svg.attr("width") - margin.left - margin.right,
-		height = +svg.attr("height") - margin.top - margin.bottom;
+		margin = {top: 20, right: 20, bottom: 30, left: 40};
+		this.width = +svg.attr("width") - margin.left - margin.right;
+		this.height = +svg.attr("height") - margin.top - margin.bottom;
 	
-		let x = d3_scale.scaleBand().rangeRound([0, width]).padding(0.1),
-		y = d3_scale.scaleLinear().rangeRound([height, 0]);
+		this.x = d3_scale.scaleBand().rangeRound([0, this.width]).padding(0.1),
+		this.y = d3_scale.scaleLinear().rangeRound([this.height, 0]);
 	
-		let g = svg.append("g")
+		this._node = svg.append("g")
 		.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-	
-		x.domain(data.map(function(d) { return d[0]; }));
-		y.domain([0, d3.max(data, function(d) { return d[1]; })]);
+		
 
-		g.append("g")
-		  .attr("class", "axis axis--xbc")
-		  .attr("transform", "translate(0," + height + ")")
-		  .call(d3_axis.axisBottom(x));
-
-		g.append("g")
+		this._node.append("g")
 		  .attr("class", "axis axis--y")
-		  .call(d3_axis.axisLeft(y).ticks(10));
+		  .call(d3_axis.axisLeft(this.y).ticks(10));
+		  
 	 
-		g.append("text")
+		this._node.append("text")
 		  .attr("transform", "rotate(-90)")
 		  .attr("y", 6)
 		  .attr("dy", "0.71em")
 		  .attr("text-anchor", "end")
 		  .text("Mutation Count");
 
+	}
+	
+    render(data, params?: Object) : void {
+		this._keys = params[0] || this._keys;
+		this._stackChart = params[1] || this._stackChart;
+		
+		let _this = this;
+		let keys = this._keys;
+		let x = this.x, y = this.y, height = this.height;
+		
+		  
+		data.forEach(x => x["obj"] = _this);
+	
+		x.domain(data.map(function(d) { return d[0]; }));
+		y.domain([0, d3.max(data, function(d) { return d[1]; })]);
+
+
+		this._node.append("g")
+		  .attr("class", "axis axis--xbc")
+		  .attr("transform", "translate(0," + this.height + ")")
+		  .call(d3_axis.axisBottom(this.x));
+				
 		var c20 = d3.scale.category20();
 		c20.domain(this._keys);
-		
-		let keys = this._keys;
-		let bars = g.selectAll(".bar")
-		  .data(data)
-		  .enter().append("rect")
-	      .attr("class", "bar")
-	      .attr("x", function(d) { return x(d[0]); })
-	      .attr("y", function(d) { return y(d[1]); })
-	      .attr("width", x.bandwidth())
-	      .attr("height", function(d) { return height - y(d[1]); })
-		  .attr("fill", function(d) { 
-			return c20(keys.find(x => d[0] === x));
-			})
-		  .on("click", this.handleClick);
-	  
-		bars.append('title')
-          .text((d) => d[0] + ' - ' + d[1]);
+		  
+		// if we have selected anything, update it
+		if(this._data != undefined) {
+			d3.selectAll('.barbc').data(data, function(d)
+			{
+				return d[0];
+			}).exit()
+			.transition()
+			.duration(3000)
+			.attr('height', 0)
+			.attr("y", function(d) { return height; })
+			.remove();
+		} else {
+			let bars = this._node.selectAll(".barbc")
+			.data(data, function(d) 
+			{ 
+			return d[0]; 
+			});
+			bars.enter().append("rect")
+			  .attr("class", "barbc")
+			  .attr("x", function(d) { return x(d[0]); })
+			  .attr("y", function(d) { return y(d[1]); })
+			  .attr("width", x.bandwidth())
+			  .attr("height", function(d) { 
+			  return height - y(d[1]); 
+			  })
+			  .attr("fill", function(d) { 
+				return c20(keys.find(x => d[0] === x));
+				})
+			  .on("click", this.handleClick);
+			 
+  
+			bars.append('title')
+			  .text((d) => d[0] + ' - ' + d[1]);
+			  
+			this._data = data;
+		}
+		  
 	}
 	
 	update(data, params?: Object) : void {
-		let g = d3_selection.select("#mutation-ov > g");
-		g.remove();
+		//let g = d3_selection.select("#mutation-ov > g");
+		//g.remove();
 		this.render(data, params);
 	}
 	

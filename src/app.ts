@@ -154,7 +154,7 @@ class StackChart implements Renderable {
 		.attr("font-size", 10)
 		.attr("text-anchor", "end")
 		.selectAll("g")
-		.data(this._keys.slice().reverse())
+		.data(layers)
 		.enter().append("g")
 		.attr("transform", function(d, i) { return "translate(50," + i * 20 + ")"; });
 
@@ -162,13 +162,28 @@ class StackChart implements Renderable {
 		  .attr("x", width - 19)
 		  .attr("width", 19)
 		  .attr("height", 13)
-		  .attr("fill", c20);
+		  .attr("fill", function(d) {
+			  return c20(d.key);
+			  })
+		  .attr('class', 'legend_label')
+		  .on('click', this.clickLegend);
 
 		legend.append("text")
 		  .attr("x", width - 24)
 		  .attr("y", 9.5)
 		  .attr("dy", "0.32em")
-		  .text(function(d) { return d.toString(); });
+		  .text(function(d) { 
+			return d.key; 
+		  });
+	}
+	
+	clickLegend(d, i) {
+		let sc = d[0].data.obj;
+		let obj = [];
+		obj.push(d['key']);
+		obj.push(i);
+		obj['obj'] = sc._barChart;
+		sc._barChart.handleClick(obj, i);
 	}
 	
 	selectBar(d, i) {

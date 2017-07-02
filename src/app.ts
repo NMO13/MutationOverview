@@ -171,7 +171,7 @@ class StackChart implements Renderable {
 		  .text(function(d) { return d.toString(); });
 	}
 	
-	handleClick(d, i) {
+	selectBar(d, i) {
 		let sc = d.data.obj;
 		if(!sc._clicked) {
 			sc._clicked = true;
@@ -187,6 +187,17 @@ class StackChart implements Renderable {
 			}
 			sc._barChart.update(newData, [])
 		}
+	}
+	
+	handleClick(d, i) {
+		let sc = d.data.obj;
+		for(let i = 0; i < sc._keys.length; i++) {
+				let key = sc._keys[i];
+				if(key !== d.mutation) {
+					d.data[key] = 0;
+				}
+			}
+		sc.selectBar(d, i);
 	}
 	
 	update(data, params?: Object) : void {
@@ -409,16 +420,20 @@ function redraw(data) {
 	
 	sc.update(chromosomes, [keys, bc]);
 	
-	d3.selectAll('.axis.axis--xbc > g').on('click', clickAxisBarchart);
-	d3.selectAll('.axis.axis--xsc > g').on('click', clickAxisStackchart);
-}
-
-function clickAxisBarchart(d, i) {
-	alert('called');
-}
-
-function clickAxisStackchart(d, i) {
-	alert('called');
+	d3.selectAll('.axis.axis--xbc > g').on('click', function(d, i) {
+		arr = [];
+		arr.push(d);
+		arr.push(i);
+		arr['obj'] = bc;
+		bc.handleClick(arr, i);
+	});
+	d3.selectAll('.axis.axis--xsc > g').on('click', function(d, i) {
+		arr = [];
+		arr.push(d);
+		arr.push(i);
+		arr['data'] = sc._data[i];
+		sc.selectBar(arr, i);
+	});
 }
 
 function start1() {

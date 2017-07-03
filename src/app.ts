@@ -396,6 +396,24 @@ interface MutationDataService {
 }
 
 class JsonDataService implements MutationDataService {
+	getAllData(count : number) {
+		let arr = [];
+		d3.select('.status').text('loading');
+		for(let i = 0; i < count; i++) {
+			arr.push($.getJSON(`https://dcc.icgc.org/api/v1/projects/GBM-US/mutations?field=id,mutation,type,chromosome,start,end&size=100&from=${i}&order=desc`));
+			arr[i].then(function (returndata) {
+				_alldata = returndata;
+				console.log("new data");
+			});
+		}
+		Promise.all(arr).then(values => {
+			console.log("finished");
+			d3.select('.status').text('finished');
+		});
+		
+		console.log("loading");
+	}
+	
     getData(path: string) {
         return $.getJSON(path, function (data, textstatus) {
         });
@@ -414,10 +432,13 @@ class History {
 	chrom: string;
 }
 
-let _data = {};
-document.getElementById("demo").onclick = function() {redraw(_data)};
+let _alldata = {};
+document.getElementById("demo").onclick = function() {redraw(_alldata)};
 
 function redraw(data) {
+	d3_selection.select("#mutation-ov").select('g').remove();
+	d3_selection.select("#chromosome-ov").select('g').remove();
+	
 	let s: MutationConverter = {
 		convert: function (data) {
 			let convertedArr = data.hits.map(function (datum) {
@@ -486,12 +507,25 @@ function redraw(data) {
 }
 
 function start1() {
-    let obj = new JsonDataService();
-    let data = obj.getData("https://dcc.icgc.org/api/v1/projects/GBM-US/mutations?field=id,mutation,type,chromosome,start,end&size=100&order=desc").then(
+	$(".pagination > a:not(.all)").click(function(event){
+		let obj = new JsonDataService();
+		event.preventDefault();
+		let i = $(this).attr("href");
+		$(".pagination > a").removeClass("active");
+		$(this).addClass("active");
+		let data = obj.getData(`https://dcc.icgc.org/api/v1/projects/GBM-US/mutations?field=id,mutation,type,chromosome,start,end&size=100&from=${i}&order=desc`).then(
         function (returndata) {
-			_data = returndata;
+			_alldata = returndata;
             redraw(returndata);
-        });   
+        });
+	});
+	$(".pagination > a.all").click(function(event) {
+		let obj = new JsonDataService();
+		event.preventDefault();
+		obj.getAllData(3000);
+		
+	});
+	
 }
  
 // Adapted from http://martin.ankerl.com/2009/12/09/how-to-create-random-colors-programmatically/

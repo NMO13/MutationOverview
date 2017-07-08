@@ -507,8 +507,8 @@ function redraw(data) {
 }
 
 function start1() {
+	let obj = new JsonDataService();
 	$(".pagination > a:not(.all)").click(function(event){
-		let obj = new JsonDataService();
 		event.preventDefault();
 		let i = $(this).attr("href");
 		$(".pagination > a").removeClass("active");
@@ -525,6 +525,12 @@ function start1() {
 		obj.getAllData(3000);
 		
 	});
+	
+	obj.getData(`https://dcc.icgc.org/api/v1/projects/GBM-US/mutations?field=id,mutation,type,chromosome,start,end&size=100&from=1&order=desc`).then(
+        function (returndata) {
+			_alldata = returndata;
+            redraw(returndata);
+        });
 	
 }
  

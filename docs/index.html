@@ -2,17 +2,41 @@
 <html>
 <style>
 
-.bar {
-  fill: steelblue;
+
+
+.barsc:hover {
+  stroke:black;
+  stroke-width:1
 }
 
-.bar:hover {
-  fill: brown;
+.barbc:hover {
+  stroke:black;
+  stroke-width:1
+}
+
+.legend_label:hover {
+  stroke:black;
+  stroke-width:1
 }
 
 .axis--x path {
   fill: none;
 }
+
+.pagination a {
+    color: black;
+    float: left;
+    padding: 8px 16px;
+    text-decoration: none;
+    transition: background-color .3s;
+}
+
+.pagination a.active {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.pagination a:hover:not(.active) {background-color: #ddd;}
 
 </style>
 
@@ -33,8 +57,10 @@
 <div id="app">
     <h3 style="margin: 5px;">Loading &hellip;</h3>
     <div class="busy"></div>
+	<svg id="mutation-ov" width="960" height="500"></svg>
+	<svg id="chromosome-ov" width="350" height="500"></svg>
+	<button id="demo">Reset</button>
 </div>
-<svg width="960" height="500"></svg>
 <script>
   (function() {
     var isChrome = /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
@@ -43,8 +69,28 @@
     }
   })();
 </script>
+
+<div id="container">
+	<div class="status">Status</div>
+	<div class="pagination">
+	  <a href="#">&laquo;</a>
+	  <a href="1">1</a>
+	  <a href="2">2</a>
+	  <a href="3">3</a>
+	  <a href="4">4</a>
+	  <a href="5">5</a>
+	  <a href="6">6</a>
+	  <a href="7">7</a>
+	  <a href="8">8</a>
+	  <a href="9">9</a>
+	  <a href="10">10</a>
+	  <a href="#">&raquo;</a>
+	  <a href="#" class="all">All</a>
+	</div>
+</div>
+
 <script src="./common.js"></script>
-<script src="./app.js" data-phovea-offline="true"></script>
+<script src="./app.js" data-phovea-offline="false"></script>
 
 </body>
 </html>

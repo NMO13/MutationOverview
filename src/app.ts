@@ -63,15 +63,15 @@ export function create(parent:Element) {
   return new App(parent);
 }
 
-interface Renderable {
+interface IRenderable {
 	render(data, params?: Object) : void;
 	update(data, params?: Object) : void;
 }
 
-class StackChart implements Renderable {
+class StackChart implements IRenderable {
 	_data : Array<History>;
 	_keys : Array<string>;
-	_barChart : Renderable;
+	_barChart : IRenderable;
 	_clicked : boolean;
 	
 	constructor() {
@@ -82,133 +82,131 @@ class StackChart implements Renderable {
 		this._keys = params[0] || this._keys;
 		this._barChart = params[1] || this._barChart;
 		this._data = data || this._data;
-		let _this = this;
-		data.map(function(h : History) {h["obj"] = _this;});
-		let svg = d3_selection.select("#chromosome-ov"),
+		const _this = this;
+		data.map(function(h : History) {h.obj = _this;});
+		const svg = d3_selection.select('#chromosome-ov'),
 		margin = {top: 20, right: 20, bottom: 30, left: 40},
-		width = +svg.attr("width") - margin.left - margin.right - 30,
-		height = +svg.attr("height") - margin.top - margin.bottom,
-		g = svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+		width = +svg.attr('width') - margin.left - margin.right - 30,
+		height = +svg.attr('height') - margin.top - margin.bottom,
+		g = svg.append('g').attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 		
-		var x = d3_scale.scaleBand()
+		const x = d3_scale.scaleBand()
 			.rangeRound([0, width])
 			.paddingInner(0.05)
 			.align(0.1);
 
-		var y = d3_scale.scaleLinear()
+		const y = d3_scale.scaleLinear()
 			.rangeRound([height, 0]);
 		
 		x.domain(data.map(function(d : History) { return d.chrom; }));
 		y.domain([0, d3.max(data, function(d : History) { return d.total; })]).nice();
 		
-		var c20 = d3.scale.category20();
+		const c20 = d3.scale.category20();
 		c20.domain(this._keys);
 
 		
-		var layers = d3_shape.stack().keys(this._keys)(data);
+		const layers = d3_shape.stack().keys(this._keys)(data);
 			
-		let rects = g.append("g")
-		.selectAll("g")
+		const rects = g.append('g')
+		.selectAll('g')
 		.data(layers)
-		.enter().append("g")
-		.attr("fill", function(d) { 
+		.enter().append('g')
+		.attr('fill', function(d) { 
 			return c20(d.key).toString(); 
 		})
-		.selectAll("rect");
+		.selectAll('rect');
 		
 		rects.data(function(d) 
 		{
-			for (let entry of d) {
-				entry["mutation"] = d.key;
+			for (const entry of d) {
+				(<any>entry).mutation = d.key;
 			}
 			return <{}[]> d; 
 		})
-		.enter().append("rect")
-		.attr("x", function(d) { return x(d["data"]["chrom"]).toString(); })
-		.attr("y", function(d) { return y(d[1]); })
-		.attr("height", function(d) { return y(d[0]) - y(d[1]); })
-		.attr("width", x.bandwidth())
-		.attr("class", "barsc")  
-		.on("click", this.handleClick)
+		.enter().append('rect')
+		.attr('x', function(d) { return x((<any>d).data.chrom).toString(); })
+		.attr('y', function(d) { return y(d[1]); })
+		.attr('height', function(d) { return y(d[0]) - y(d[1]); })
+		.attr('width', x.bandwidth())
+		.attr('class', 'barsc')  
+		.on('click', this.handleClick)
 		.append('title')
-		  .text((d) => d["mutation"] + ": " + (d[1]-d[0]).toString());
+		  .text((d) => (<any>d).mutation + ': ' + (d[1]-d[0]).toString());
 
-		g.append("g")
-		.attr("class", "axis axis--xsc")
-		.attr("transform", "translate(0," + height + ")")
+		g.append('g')
+		.attr('class', 'axis axis--xsc')
+		.attr('transform', 'translate(0,' + height + ')')
 		.call(d3_axis.axisBottom(x));
 
-		g.append("g")
-		.attr("class", "axis")
-		.call(d3_axis.axisLeft(y).ticks(null, "s"))
-		.append("text")
-		.attr("x", 2)
-		.attr("y", y(y.ticks().pop()) + 0.5)
-		.attr("dy", "0.32em")
-		.attr("fill", "#000")
-		.attr("font-weight", "bold")
-		.attr("text-anchor", "start")
-		.text("Mutation Distribution");
+		g.append('g')
+		.attr('class', 'axis')
+		.call(d3_axis.axisLeft(y).ticks(null, 's'))
+		.append('text')
+		.attr('x', 2)
+		.attr('y', y(y.ticks().pop()) + 0.5)
+		.attr('dy', '0.32em')
+		.attr('fill', '#000')
+		.attr('font-weight', 'bold')
+		.attr('text-anchor', 'start')
+		.text('Mutation Distribution');
 
-		var legend = g.append("g")
-		.attr("font-family", "sans-serif")
-		.attr("font-size", 10)
-		.attr("text-anchor", "end")
-		.selectAll("g")
+		const legend = g.append('g')
+		.attr('font-family', 'sans-serif')
+		.attr('font-size', 10)
+		.attr('text-anchor', 'end')
+		.selectAll('g')
 		.data(layers)
-		.enter().append("g")
-		.attr("transform", function(d, i) { return "translate(50," + i * 20 + ")"; });
+		.enter().append('g')
+		.attr('transform', function(d, i) { return 'translate(50,' + i * 20 + ')'; });
 
-		legend.append("rect")
-		  .attr("x", width - 19)
-		  .attr("width", 19)
-		  .attr("height", 13)
-		  .attr("fill", function(d) {
+		legend.append('rect')
+		  .attr('x', width - 19)
+		  .attr('width', 19)
+		  .attr('height', 13)
+		  .attr('fill', function(d) {
 			  return c20(d.key);
 			  })
 		  .attr('class', 'legend_label')
 		  .on('click', this.clickLegend);
 
-		legend.append("text")
-		  .attr("x", width - 24)
-		  .attr("y", 9.5)
-		  .attr("dy", "0.32em")
+		legend.append('text')
+		  .attr('x', width - 24)
+		  .attr('y', 9.5)
+		  .attr('dy', '0.32em')
 		  .text(function(d) { 
 			return d.key; 
 		  });
 	}
 	
 	clickLegend(d, i) {
-		let sc = d[0].data.obj;
-		let obj = [];
-		obj.push(d['key']);
+		const sc =  (<any>d[0].data).obj;
+		const obj = [];
+		obj.push(d.key);
 		obj.push(i);
-		obj['obj'] = sc._barChart;
+		(<any>obj).obj = sc._barChart;
 		sc._barChart.handleClick(obj, i);
 	}
 	
 	selectBar(d, i) {
-		let sc = d.data.obj;
+		const sc = d.data.obj;
 		if(!sc._clicked) {
 			sc._clicked = true;
 			sc.update([d.data], []);
 			
-			let newData = [];
-			for(let i = 0; i < sc._keys.length; i++) {
-				let key = sc._keys[i];
+			const newData = [];
+			for(const key of sc._keys) {
 				if(d.data[key] > 0) {
-					let el = sc._barChart._data.find(x => x[0] === key);
+					const el = sc._barChart._data.find((x) => x[0] === key);
 					newData.push(el);
 				}
 			}
-			sc._barChart.update(newData, [])
+			sc._barChart.update(newData, []);
 		}
 	}
 	
 	handleClick(d, i) {
-		let sc = d.data.obj;
-		for(let i = 0; i < sc._keys.length; i++) {
-				let key = sc._keys[i];
+		const sc = d.data.obj;
+		for(const key of sc._keys) {
 				if(key !== d.mutation) {
 					d.data[key] = 0;
 				}
@@ -217,19 +215,19 @@ class StackChart implements Renderable {
 	}
 	
 	update(data, params?: Object) : void {
-		let g = d3_selection.select("#chromosome-ov > g");
+		const g = d3_selection.select('#chromosome-ov > g');
 		g.remove();
 		this.render(data, params);
 	}
 
 }
 
-class BarChart implements Renderable {
+class BarChart implements IRenderable {
 	_data : Array<History>;
 	_keys : Array<string>;
 	_colorArray : Array<Object>;
 	_clicked : boolean;
-	_stackChart : Renderable;
+	_stackChart : IRenderable;
 	private _node : any;
 	private width : number;
 	private height : number;
@@ -238,29 +236,29 @@ class BarChart implements Renderable {
 	
 	constructor() {
 		this._clicked = false;
-		let svg = d3_selection.select("#mutation-ov"),
+		const svg = d3_selection.select('#mutation-ov'),
 		margin = {top: 20, right: 20, bottom: 30, left: 40};
-		this.width = +svg.attr("width") - margin.left - margin.right;
-		this.height = +svg.attr("height") - margin.top - margin.bottom;
+		this.width = +svg.attr('width') - margin.left - margin.right;
+		this.height = +svg.attr('height') - margin.top - margin.bottom;
 	
-		this.x = d3_scale.scaleBand().rangeRound([0, this.width]).padding(0.1),
+		this.x = d3_scale.scaleBand().rangeRound([0, this.width]).padding(0.1);
 		this.y = d3_scale.scaleLinear().rangeRound([this.height, 0]);
 	
-		this._node = svg.append("g")
-		.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+		this._node = svg.append('g')
+		.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 		
 
-		this._node.append("g")
-		  .attr("class", "axis axis--y")
+		this._node.append('g')
+		  .attr('class', 'axis axis--y')
 		  .call(d3_axis.axisLeft(this.y).ticks(10));
 		  
 	 
-		this._node.append("text")
-		  .attr("transform", "rotate(-90)")
-		  .attr("y", 6)
-		  .attr("dy", "0.71em")
-		  .attr("text-anchor", "end")
-		  .text("Mutation Count");
+		this._node.append('text')
+		  .attr('transform', 'rotate(-90)')
+		  .attr('y', 6)
+		  .attr('dy', '0.71em')
+		  .attr('text-anchor', 'end')
+		  .text('Mutation Count');
 
 	}
 	
@@ -268,27 +266,27 @@ class BarChart implements Renderable {
 		this._keys = params[0] || this._keys;
 		this._stackChart = params[1] || this._stackChart;
 		
-		let _this = this;
-		let keys = this._keys;
-		let x = this.x, y = this.y, height = this.height;
+		const _this = this;
+		const keys = this._keys;
+		const x = this.x, y = this.y, height = this.height;
 		
 		  
-		data.forEach(x => x["obj"] = _this);
+		data.forEach((x) => x.obj = _this);
 	
 		x.domain(data.map(function(d) { return d[0]; }));
 		y.domain([0, d3.max(data, function(d) { return d[1]; })]);
 
 
-		this._node.append("g")
-		  .attr("class", "axis axis--xbc")
-		  .attr("transform", "translate(0," + this.height + ")")
+		this._node.append('g')
+		  .attr('class', 'axis axis--xbc')
+		  .attr('transform', 'translate(0,' + this.height + ')')
 		  .call(d3_axis.axisBottom(this.x));
 				
-		var c20 = d3.scale.category20();
+		const c20 = d3.scale.category20();
 		c20.domain(this._keys);
 		  
 		// if we have selected anything, update it
-		if(this._data != undefined) {
+		if(this._data !== undefined) {
 			d3.selectAll('.barbc').data(data, function(d)
 			{
 				return d[0];
@@ -296,26 +294,26 @@ class BarChart implements Renderable {
 			.transition()
 			.duration(3000)
 			.attr('height', 0)
-			.attr("y", function(d) { return height; })
+			.attr('y', function(d) { return height; })
 			.remove();
 		} else {
-			let bars = this._node.selectAll(".barbc")
+			const bars = this._node.selectAll('.barbc')
 			.data(data, function(d) 
 			{ 
 			return d[0]; 
 			});
-			bars.enter().append("rect")
-			  .attr("class", "barbc")
-			  .attr("x", function(d) { return x(d[0]); })
-			  .attr("y", function(d) { return y(d[1]); })
-			  .attr("width", x.bandwidth())
-			  .attr("height", function(d) { 
+			bars.enter().append('rect')
+			  .attr('class', 'barbc')
+			  .attr('x', function(d) { return x(d[0]); })
+			  .attr('y', function(d) { return y(d[1]); })
+			  .attr('width', x.bandwidth())
+			  .attr('height', function(d) { 
 			  return height - y(d[1]); 
 			  })
-			  .attr("fill", function(d) { 
-				return c20(keys.find(x => d[0] === x));
+			  .attr('fill', function(d) { 
+				return c20(keys.find((x) => d[0] === x));
 				})
-			  .on("click", this.handleClick);
+			  .on('click', this.handleClick);
 			 
   
 			bars.append('title')
@@ -333,18 +331,19 @@ class BarChart implements Renderable {
 	}
 	
 	handleClick(d, i) {
-		let bc = d.obj;
+		const bc = d.obj;
 		if(!bc._clicked) {
 			bc._clicked = true;
-			let key = bc._keys[i];
+			const key = bc._keys[i];
 			bc.update([d], []);
 			
-			let sc = bc._stackChart;
-			let dataNew = sc._data.map(function(h) {
+			const sc = bc._stackChart;
+			const dataNew = sc._data.map(function(h) {
 				sc._keys.forEach(function(k) {
-					let l = d[0];
-					if(l !== k)
+					const l = d[0];
+					if(l !== k) {
 						h[k] = 0;
+					}
 				});
 				return h;
 			});
@@ -356,28 +355,31 @@ class BarChart implements Renderable {
 class MutationArray {
     constructor(public array: MutationDatum[]) { }
     groupCountByProperty(propertyName: string) {
-        let hist = {};
+        const hist = {};
         this.array.map(function (a) {
-            let property = a[propertyName];
-            if (property in hist) hist[property]++; else hist[property] = 1;
+            const property = a[propertyName];
+            if (property in hist) {
+				hist[property]++;
+			} else {
+				hist[property] = 1;
+			}
         });
         return hist;
     }
 	
 	// code from http://codereview.stackexchange.com/questions/37028/grouping-elements-in-array-by-multiple-properties
-	groupByProperties( f )
-	{
-	  let groups = {};
+	groupByProperties( f ) {
+	  const groups = {};
 	  this.array.forEach( function( o )
 	  {
-		let group = JSON.stringify( f(o) );
+		const group = JSON.stringify( f(o) );
 		groups[group] = groups[group] || [];
 		groups[group].push( o );  
 	  });
 	  return Object.keys(groups).map( function( group )
 	  {
 		return groups[group]; 
-	  })
+	  });
 	}
 }
 
@@ -387,69 +389,70 @@ class MutationDatum {
     }
 }
 
-interface MutationConverter {
+interface IMutationConverter {
     convert: (data) => MutationArray;
 }
 
-interface MutationDataService {
+interface IMutationDataService {
     getData: (path: string) => any;
 }
 
-class JsonDataService implements MutationDataService {
+class JsonDataService implements IMutationDataService {
 	getAllData(count : number) {
-		let arr = [];
+		const arr = [];
 		d3.select('.status').text('loading');
 		for(let i = 0; i < count; i++) {
 			arr.push($.getJSON(`https://dcc.icgc.org/api/v1/projects/GBM-US/mutations?field=id,mutation,type,chromosome,start,end&size=100&from=${i}&order=desc`));
 			arr[i].then(function (returndata) {
 				_alldata = returndata;
-				console.log("new data");
+				console.log('new data');
 			});
 		}
-		Promise.all(arr).then(values => {
-			console.log("finished");
+		Promise.all(arr).then((values) => {
+			console.log('finished');
 			d3.select('.status').text('finished');
 		});
 		
-		console.log("loading");
+		console.log('loading');
 	}
 	
     getData(path: string) {
         return $.getJSON(path, function (data, textstatus) {
+			return null;
         });
     }
 }
 
 class History {
 	constructor(keys) {
-		for(let k of keys) {
+		for(const k of keys) {
 			this[k] = 0;
 		}
 		this.total = 0;
-		this.chrom = "";
+		this.chrom = '';
 	}
 	total: number;
 	chrom: string;
+	obj: IRenderable;
 }
 
-let _alldata = {};
-document.getElementById("demo").onclick = function() {redraw(_alldata)};
+document.getElementById('demo').onclick = function() {redraw(_alldata);};
 
 function redraw(data) {
-	d3_selection.select("#mutation-ov").select('g').remove();
-	d3_selection.select("#chromosome-ov").select('g').remove();
+	d3_selection.select('#mutation-ov').select('g').remove();
+	d3_selection.select('#chromosome-ov').select('g').remove();
 	
-	let s: MutationConverter = {
-		convert: function (data) {
-			let convertedArr = data.hits.map(function (datum) {
+	const s: IMutationConverter = {
+		convert(data) {
+			const convertedArr = data.hits.map(function (datum) {
 				return new MutationDatum(datum.chromosome, datum.end, datum.id, datum.mutation, datum.start, datum.type);
 			});
 			return new MutationArray(convertedArr);
 		}
 	};
-	let mutationArray = s.convert(data);
+	const mutationArray = s.convert(data);
 
-	let mutations = mutationArray.groupByProperties(function(item)
+	const mutations = mutationArray.groupByProperties(function(item)
 	{
 		return [item.mutation];
 	});
@@ -459,13 +462,13 @@ function redraw(data) {
 		return mutation.length > 0 ? [mutation[0].mutation, mutation.length] : [];
 	});
 	
-	let keys = arr.map(function(mutation) {
+	const keys = arr.map(function(mutation) {
 		return mutation[0];
 	});
 	
 	
-	let sc = new StackChart();
-	let bc = new BarChart();
+	const sc = new StackChart();
+	const bc = new BarChart();
 	bc.update(arr, [keys, sc]);
 	
 	let chromosomes = mutationArray.groupByProperties(function(item)
@@ -476,11 +479,15 @@ function redraw(data) {
 	
 	chromosomes = chromosomes.map(function(ch) {
 		
-		let hist = new History(keys);
+		const hist = new History(keys);
 		
-		for(let mutationDatum of ch) {
-			let m = mutationDatum.mutation;
-			if (m in hist) hist[m]++; else hist[m] = 1;
+		for(const mutationDatum of ch) {
+			const m = mutationDatum.mutation;
+			if (m in hist) {
+				hist[m]++;
+			} else { 
+				hist[m] = 1;
+			}
 			hist.chrom = mutationDatum.chromosome;
 			hist.total++;
 		}
@@ -494,33 +501,35 @@ function redraw(data) {
 		arr = [];
 		arr.push(d);
 		arr.push(i);
-		arr['obj'] = bc;
+		(<any>arr).obj = bc;
 		bc.handleClick(arr, i);
 	});
 	d3.selectAll('.axis.axis--xsc > g').on('click', function(d, i) {
 		arr = [];
 		arr.push(d);
 		arr.push(i);
-		arr['data'] = sc._data[i];
+		(<any>arr).data = sc._data[i];
 		sc.selectBar(arr, i);
 	});
 }
 
+let _alldata = {};
+
 function start1() {
-	let obj = new JsonDataService();
-	$(".pagination > a:not(.all)").click(function(event){
+	const obj = new JsonDataService();
+	$('.pagination > a:not(.all)').click(function(event){
 		event.preventDefault();
-		let i = $(this).attr("href");
-		$(".pagination > a").removeClass("active");
-		$(this).addClass("active");
-		let data = obj.getData(`https://dcc.icgc.org/api/v1/projects/GBM-US/mutations?field=id,mutation,type,chromosome,start,end&size=100&from=${i}&order=desc`).then(
+		const i = $(this).attr('href');
+		$('.pagination > a').removeClass('active');
+		$(this).addClass('active');
+		const data = obj.getData(`https://dcc.icgc.org/api/v1/projects/GBM-US/mutations?field=id,mutation,type,chromosome,start,end&size=100&from=${i}&order=desc`).then(
         function (returndata) {
 			_alldata = returndata;
             redraw(returndata);
         });
 	});
-	$(".pagination > a.all").click(function(event) {
-		let obj = new JsonDataService();
+	$('.pagination > a.all').click(function(event) {
+		const obj = new JsonDataService();
 		event.preventDefault();
 		obj.getAllData(3000);
 		
@@ -533,42 +542,3 @@ function start1() {
         });
 	
 }
- 
-// Adapted from http://martin.ankerl.com/2009/12/09/how-to-create-random-colors-programmatically/
-
-function hue2rgb(p, q, t){
-              if(t < 0) t += 1;
-              if(t > 1) t -= 1;
-              if(t < 1/6) return p + (q - p) * 6 * t;
-              if(t < 1/2) return q;
-              if(t < 2/3) return p + (q - p) * (2/3 - t) * 6;
-              return p;
-          };
-		  
-var randomColor = (function(){
-  var golden_ratio_conjugate = 0.618033988749895;
-  var h = Math.random();
-
-  var hslToRgb = function (h, s, l){
-      var r, g, b;
-
-      if(s == 0){
-          r = g = b = l; // achromatic
-      }else{
-          
-
-          var q = l < 0.5 ? l * (1 + s) : l + s - l * s;
-          var p = 2 * l - q;
-          r = hue2rgb(p, q, h + 1/3);
-          g = hue2rgb(p, q, h);
-          b = hue2rgb(p, q, h - 1/3);
-      }
-
-      return '#'+Math.round(r * 255).toString(16)+Math.round(g * 255).toString(16)+Math.round(b * 255).toString(16);
-  };
-	return function(){
-		h += golden_ratio_conjugate;
-		h %= 1;
-		return hslToRgb(h, 0.5, 0.60);
-	  };
-	})();

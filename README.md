@@ -1,2 +1,0 @@
-# MutationOverview
-Junior Research Challenge

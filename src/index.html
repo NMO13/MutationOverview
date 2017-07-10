@@ -55,16 +55,21 @@
 <div id="caleydoHeader"></div>
 
 <h1>
-Dataset
+Mutation Overview
 </h1>
 
-The dataset consists of cancer data which is part of the Glioblastoma multiforme project (GBM-US) from the mutations API endpoint of the ICGC Data Coordination Center.
-The data are accessible in JSON format and can be accessed by querying the API endpoint. And example query to receive the first 100 mutations would be: 
+<h2>
+Dataset
+</h2>
+
+The dataset consists of cancer data which is part of the Glioblastoma multiforme project (GBM-US) from the mutations API endpoint of the ICGC Data Coordination Center.<br>
+The data are accessible in JSON format and can be accessed by querying the API endpoint. 
+And example query to receive the first 100 mutations would be: 
 <a href="https://dcc.icgc.org/api/v1/projects/GBM-US/mutations?field=id,mutation,type,chromosome,start,end&size=100&order=desc">https://dcc.icgc.org/api/v1/projects/GBM-US/mutations?field=id,mutation,type,chromosome,start,end&size=100&order=desc</a>
 
-<h1>
+<h2>
 User Goals
-</h1>
+</h2>
 
 The goals is to provide a browser-based JavaScript tool for interactive visualization of mutations in cancer.
  The user should be able to see and interact with two different kinds of overviews:
@@ -74,32 +79,33 @@ The goals is to provide a browser-based JavaScript tool for interactive visualiz
 </ol>
 
 Further, the user should be able to filter the data. Selecting a type or chromosome should filter the overall list of mutations to the subset that pass 
-the filter and update the other view (e.g., if chromosome 17 is selected, the Type Overview should only show the data for mutations on chromosome 17).
-Selecting an entry in both the Chromosome Overview and the Type Overview should be allowed and be treated like a logical AND.
-It should be possible to clear the filters.
+the filter and update the other view (e.g., if chromosome 17 is selected, the Type Overview should only show the data for mutations on chromosome 17).<br>
+Selecting an entry in both the Chromosome Overview and the Type Overview should be allowed and be treated like a logical AND. It should be possible to clear the filters. <br>
+Mutations should be visualized in groups of 100. So a paging mechanism has to be implemented to switch between different groups.
 
-<h1>
+<h2>
 Solution
-</h1>
+</h2>
 
-We use barcharts for the type overview and the mutation overview. This allows the user to get a quick visual feedback of the number and distributions of mutations.
-By clicking on a bar of the overview barchart, the mutation overview adapts its visualization and vice versa.
+We use barcharts for the type overview and the mutation overview. This allows the user to get a quick visual feedback of the number and distributions of mutations.<br>
+By clicking on a bar of the overview barchart, the mutation overview adapts its visualization and vice versa.<br>
+To switch between mutation groups, a number bar is available at the bottom of the page. When the user clicks on a number the visualization will be updated as well.
 
-<h1>
+<h2>
 Implementation
-</h1>
+</h2>
 
-We implemented our visualization using TypeScript an D3.
+We implemented our visualization using TypeScript an D3. <br>
 We created a dataservice which retrieves the mutation data from the mutation API. The dataservice makes an AJAX call to the datapoint and supplies the data in chunks of
-100 mutations or all data at once. This depends on the used selection method.
-The barchart and stacked barchart are implemented in separate classes.
-For both charts, we implemente a <i>render</i> method which will be called for the initial setup of the charts and each time the visualization state changes.
+100 mutations or all data at once. This depends on the used selection method. <br>
+The barchart and stacked barchart are implemented in separate classes. <br>
+For both charts, we implemente a <i>render</i> method which will be called for the initial setup of the charts and each time the visualization state changes. <br>
 
 Further, a reset button was implemented to reset the filters.
 
-<h1>
+<h2>
 Improvements
-</h1>
+</h2>
 
 <ul>
   <li>It should be possible to click on the legend fields after a filter has been applied.</li>
@@ -107,6 +113,9 @@ Improvements
   <li>The dataset contains much more information which would be interesting to visualize. Currently, only the mutations are visualized.</li>
 </ul>
 
+<h2>
+Mutation Overview Demo
+</h2>
 
 <div id="app">
     <h3 style="margin: 5px;">Loading &hellip;</h3>

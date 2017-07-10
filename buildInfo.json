@@ -1,0 +1,79 @@
+{
+ "name": "mutation_overview",
+ "version": "1.0.0-20170610-084741",
+ "resolved": "https://github.com/NMO13/mutation_overview.git#d255b65a59647030f78973ae037d8adcbd86a1fd",
+ "dependencies": {
+  "@types/d3": {
+   "version": "3.5.36",
+   "from": "@types/d3@3.5.36",
+   "resolved": "https://registry.npmjs.org/@types/d3/-/d3-3.5.36.tgz"
+  },
+  "@types/jquery": {
+   "version": "2.0.33",
+   "from": "@types/jquery@2.0.33",
+   "resolved": "https://registry.npmjs.org/@types/jquery/-/jquery-2.0.33.tgz"
+  },
+  "d3": {
+   "version": "3.5.17",
+   "from": "d3@3.5.17",
+   "resolved": "https://registry.npmjs.org/d3/-/d3-3.5.17.tgz"
+  },
+  "jquery": {
+   "version": "3.1.1",
+   "from": "jquery@3.1.1",
+   "resolved": "https://registry.npmjs.org/jquery/-/jquery-3.1.1.tgz"
+  },
+  "phovea_core": {
+   "version": "0.1.1-SNAPSHOT",
+   "from": "phovea/phovea_core#develop",
+   "resolved": "git://github.com/phovea/phovea_core.git#19ecf7ff4bf003dfec1705e4966feaab1954d328",
+   "dependencies": {
+    "@types/whatwg-fetch": {
+     "version": "0.0.33",
+     "from": "@types/whatwg-fetch@0.0.33",
+     "resolved": "https://registry.npmjs.org/@types/whatwg-fetch/-/whatwg-fetch-0.0.33.tgz",
+     "dependencies": {
+      "@types/whatwg-streams": {
+       "version": "0.0.3",
+       "from": "@types/whatwg-streams@*",
+       "resolved": "https://registry.npmjs.org/@types/whatwg-streams/-/whatwg-streams-0.0.3.tgz"
+      }
+     }
+    },
+    "tslib": {
+     "version": "1.5.0",
+     "from": "tslib@1.5.0",
+     "resolved": "https://registry.npmjs.org/tslib/-/tslib-1.5.0.tgz"
+    }
+   }
+  },
+  "phovea_d3": {
+   "version": "0.1.1-SNAPSHOT",
+   "from": "phovea/phovea_d3#develop",
+   "resolved": "git://github.com/phovea/phovea_d3.git#a8c17bc51d4d0c61671769bf8d11a7016197a219"
+  },
+  "phovea_ui": {
+   "version": "0.1.1-SNAPSHOT",
+   "from": "phovea/phovea_ui#develop",
+   "resolved": "git://github.com/phovea/phovea_ui.git#0bc5b071f7a4dc0a66c65201a20755e508da1aeb",
+   "dependencies": {
+    "@types/bootstrap": {
+     "version": "3.3.32",
+     "from": "@types/bootstrap@3.3.32",
+     "resolved": "https://registry.npmjs.org/@types/bootstrap/-/bootstrap-3.3.32.tgz"
+    },
+    "bootstrap-sass": {
+     "version": "3.3.7",
+     "from": "bootstrap-sass@3.3.7",
+     "resolved": "https://registry.npmjs.org/bootstrap-sass/-/bootstrap-sass-3.3.7.tgz"
+    },
+    "font-awesome": {
+     "version": "4.6.3",
+     "from": "font-awesome@4.6.3",
+     "resolved": "https://registry.npmjs.org/font-awesome/-/font-awesome-4.6.3.tgz"
+    }
+   }
+  }
+ },
+ "extraDependencies": {}
+}
